@@ -1,0 +1,103 @@
+import 'package:stackfood_multivendor_restaurant/features/restaurant/controllers/restaurant_controller.dart';
+import 'package:stackfood_multivendor_restaurant/features/splash/controllers/splash_controller.dart';
+import 'package:stackfood_multivendor_restaurant/helper/date_converter_helper.dart';
+import 'package:stackfood_multivendor_restaurant/util/dimensions.dart';
+import 'package:stackfood_multivendor_restaurant/util/styles.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class TimePickerWidget extends StatefulWidget {
+  final String title;
+  final String? errorMessage;
+  final String? time;
+  final Function(String?) onTimeChanged;
+  final bool showError;
+  const TimePickerWidget({super.key, required this.title, required this.time, required this.onTimeChanged, this.showError = false, this.errorMessage});
+
+  @override
+  State<TimePickerWidget> createState() => _TimePickerWidgetState();
+}
+
+class _TimePickerWidgetState extends State<TimePickerWidget> {
+  String? _myTime;
+
+  @override
+  Widget build(BuildContext context) {
+
+    _myTime = widget.time;
+
+    return GetBuilder<RestaurantController>(builder: (restController) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+
+        InkWell(
+          onTap: () async {
+            TimeOfDay? time = await showTimePicker(
+              context: context, initialTime: TimeOfDay(hour: DateTime.now().hour, minute: DateTime.now().minute),
+              builder: (BuildContext context, Widget? child) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    alwaysUse24HourFormat: Get.find<SplashController>().configModel!.timeformat == '24',
+                  ),
+                  child: child!,
+                );
+              },
+            );
+            if(time != null) {
+              setState(() {
+                _myTime = DateConverter.convertTimeToTime(DateTime(DateTime.now().year, 1, 1, time.hour, time.minute));
+              });
+              widget.onTimeChanged(_myTime);
+            }
+          },
+          child: Stack(clipBehavior: Clip.none, children: [
+
+            Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                border: Border.all(color: widget.showError ? Theme.of(context).colorScheme.error : Theme.of(context).hintColor, width: widget.showError ? 1.5 : 0.5),
+              ),
+              padding: const EdgeInsets.only(left: Dimensions.paddingSizeDefault, right: Dimensions.paddingSizeSmall),
+              child: Row(children: [
+
+                Expanded(child: Text(
+                  _myTime != null ? DateConverter.convertStringTimeToTime(_myTime!) : ' - -  : - - ${'min'.tr}', style: robotoRegular.copyWith(color: _myTime != null ? Theme.of(context).textTheme.bodyLarge?.color : Theme.of(context).hintColor, fontSize: Dimensions.fontSizeDefault),
+                )),
+
+                Icon(Icons.access_time_filled, size: 20, color: Theme.of(context).primaryColor),
+
+              ]),
+            ),
+
+            Positioned(
+              left: 10, top: -15,
+              child: Container(
+                decoration: BoxDecoration(color: Theme.of(context).cardColor),
+                padding: const EdgeInsets.all(5),
+                child: RichText(text: TextSpan(children: [
+                  TextSpan(text: widget.title, style: robotoRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeSmall)),
+                  TextSpan(text: ' *', style: robotoRegular.copyWith(color: Colors.red, fontSize: Dimensions.fontSizeSmall)),
+                ])),
+              ),
+            )
+
+          ]),
+        ),
+
+        if (widget.showError && widget.errorMessage!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 12),
+            child: Text(
+              widget.errorMessage!.tr,
+              style: robotoRegular.copyWith(
+                color: Theme.of(context).colorScheme.error,
+                fontSize: Dimensions.fontSizeSmall,
+              ),
+            ),
+          ),
+
+      ]);
+    });
+  }
+}
