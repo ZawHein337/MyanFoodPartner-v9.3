@@ -3,7 +3,7 @@ import 'package:stackfood_multivendor_restaurant/util/images.dart';
 
 class AppConstants {
   static const String appName = 'MyanFood Partner';
-  static const double appVersion = 9.3; ///Flutter SDK: 3.47.2
+  static const double appVersion = 2.1; ///Flutter SDK: 3.47.2
 
   static const String baseUrl = 'https://www.myanfoodmm.com';
   static const String configUri = '/api/v1/config';
